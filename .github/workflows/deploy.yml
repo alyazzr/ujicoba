@@ -81,7 +81,9 @@ jobs:
           sed -i "s|__GA_MEASUREMENT_ID__|${GA_ID}|g" index.html
           echo "Placeholder replaced in index.html"
 
-      # Langkah 6: Deploy ke GitHub Pages
+# Langkah 6: Deploy ke GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
