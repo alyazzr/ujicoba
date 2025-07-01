@@ -62,7 +62,8 @@ jobs:
           conn.close()
           
           if df.empty:
-            print(f'Error: Tidak ada data ditemukan di database untuk URL {os.getenv('SITE_URL')}')
+            # Ini baris yang diperbaiki, dengan tanda '}' di akhir
+            print(f\"Error: Tidak ada data ditemukan di database untuk URL {os.getenv('SITE_URL')}\")
             exit(1)
           
           measurement_id = df['ga_measurement_id'][0]
