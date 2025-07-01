@@ -34,12 +34,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install psycopg2-binary pandas
 
-      # Langkah 4: Ambil Measurement ID dari Database
+# Langkah 4: Ambil Measurement ID dari Database
       - name: Fetch Measurement ID from Database
-        id: fetch_id 
+        id: fetch_id
         env:
-          # BAGIAN INI MENGAMBIL DATA ANDA DARI "RAHASIA" REPOSITORI
-          # Jadi, tidak ada password atau username yang ditulis di sini.
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
           DB_NAME: ${{ secrets.DB_NAME }}
@@ -47,6 +45,7 @@ jobs:
           DB_PASS: ${{ secrets.DB_PASS }}
           SITE_URL: ${{ github.event.inputs.site_url }}
         run: |
+          python -c "
           import os
           import psycopg2
           import pandas as pd
@@ -58,28 +57,20 @@ jobs:
               user=os.getenv('DB_USER'),
               password=os.getenv('DB_PASS')
           )
-          query = f"SELECT ga_measurement_id FROM websites WHERE site_url = '{os.getenv('SITE_URL')}'"
+          query = f\"SELECT ga_measurement_id FROM websites WHERE site_url = '{os.getenv('SITE_URL')}'\"
           df = pd.read_sql_query(query, conn)
           conn.close()
           
-          # Cek jika data ditemukan sebelum mencoba mengambilnya
           if df.empty:
-            print(f"Error: Tidak ada data ditemukan di database untuk URL {os.getenv('SITE_URL')}")
+            print(f'Error: Tidak ada data ditemukan di database untuk URL {os.getenv('SITE_URL')}')
             exit(1)
           
           measurement_id = df['ga_measurement_id'][0]
-          print(f"Measurement ID found: {measurement_id}")
+          print(f'Measurement ID found: {measurement_id}')
           
-          # Menyimpan ID sebagai output dari langkah ini
-          echo "ga_id=${measurement_id}" >> $GITHUB_OUTPUT
-
-      # Langkah 5: Ganti Placeholder di file index.html
-      - name: Replace Placeholder in HTML
-        run: |
-          GA_ID="${{ steps.fetch_id.outputs.ga_id }}"
-          # Perintah 'sed' ini akan mencari dan mengganti placeholder
-          sed -i "s|__GA_MEASUREMENT_ID__|${GA_ID}|g" index.html
-          echo "Placeholder replaced in index.html"
+          with open(os.getenv('GITHUB_OUTPUT'), 'a') as f:
+            f.write(f'ga_id={measurement_id}')
+          "
 
 # Langkah 6: Deploy ke GitHub Pages
       - name: Deploy to GitHub Pages
